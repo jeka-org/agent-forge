@@ -1,70 +1,79 @@
 # Building Agent Forge
 
-## Prerequisites
+## Quick Start
 
-- Rust 1.79.0+ (for Anchor 0.30.x compatibility)
-- Solana CLI 1.18.x
-- Anchor CLI 0.30.1
-- Node.js 18+
-
-## Known Issues
-
-### Toolchain Compatibility (Feb 2026)
-
-The Solana/Anchor ecosystem is currently experiencing dependency conflicts:
-
-- `blake3 v1.8.3` requires Rust 2024 edition (`edition2024` feature)
-- This feature isn't stabilized in Cargo 1.84.0
-- Anchor 0.32.x has transitive dependencies requiring newer Rust
-
-**Workaround options:**
-
-1. Use Rust nightly with `-Zunstable-options`
-2. Wait for Anchor to update dependencies
-3. Pin specific dependency versions in Cargo.toml
-
-## Build Commands
+Agent Forge is written in **Solidity** and compiled with **Solang** to Solana BPF bytecode.
 
 ```bash
+# Install Solang (one-time)
+curl -sSL https://github.com/hyperledger/solang/releases/latest/download/solang-linux-x86-64 \
+  -o /usr/local/bin/solang && chmod +x /usr/local/bin/solang
+
 # Install Solana CLI
-sh -c "$(curl -sSfL https://release.anza.xyz/v1.18.22/install)"
+sh -c "$(curl -sSfL https://release.anza.xyz/stable/install)"
 export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
 
-# Install Anchor via AVM
-cargo install --git https://github.com/coral-xyz/anchor avm --locked
-avm install 0.30.1
-avm use 0.30.1
-
-# Build program
+# Build
 cd agent-forge
-anchor build
+solang compile --target solana -o target/deploy contracts/AgentForge.sol
 
-# Run tests
-anchor test
+# Deploy to devnet
+solana config set --url devnet
+solana program deploy target/deploy/AgentForge.so
 ```
+
+## Why Solidity?
+
+We chose Solidity + Solang over Rust + Anchor because:
+1. **Faster iteration** - Solidity is more concise for smart contract logic
+2. **Avoids toolchain issues** - Rust/Anchor ecosystem has dependency conflicts (blake3 requires Rust 2024 edition)
+3. **Familiar syntax** - If you know Ethereum, you can read this code
 
 ## Program Structure
 
 ```
-programs/agent-forge/
-├── Cargo.toml      # Program dependencies
-└── src/
-    └── lib.rs      # Main program logic
-        - Agent registration
-        - Task creation with escrow
-        - Task acceptance/completion
-        - Payment release
-        - Reputation tracking
+contracts/
+└── AgentForge.sol   # Main contract (300 lines)
+    - Agent registration with reputation
+    - Task creation with escrow
+    - Task acceptance/submission/approval
+    - Reputation = (completed / total) * 100
+
+target/deploy/
+├── AgentForge.json  # IDL/ABI for clients
+└── AgentForge.so    # Compiled BPF bytecode (227KB)
 ```
+
+## Key Functions
+
+| Function | Description |
+|----------|-------------|
+| `registerAgent(owner, name, rate)` | Register as an agent |
+| `createTask(creator, desc, budget, deadline)` | Create task with escrow |
+| `acceptTask(agent, taskId)` | Agent accepts task |
+| `submitResult(agent, taskId, resultUri)` | Submit work |
+| `approveResult(creator, taskId)` | Approve and pay |
+| `rejectResult(creator, taskId, reason)` | Reject (dispute) |
 
 ## Deployment
 
 ```bash
-# Deploy to devnet
+# Devnet (testing)
 solana config set --url devnet
-anchor deploy
+solana program deploy target/deploy/AgentForge.so
 
-# Deploy to mainnet (requires SOL)
+# Mainnet (production)
 solana config set --url mainnet-beta
-anchor deploy
+solana program deploy target/deploy/AgentForge.so
+```
+
+## Client Integration
+
+Use the generated `AgentForge.json` IDL with `@solana/web3.js`:
+
+```typescript
+import { Connection, PublicKey } from '@solana/web3.js';
+
+const programId = new PublicKey('AgentForge111111111111111111111111111111111');
+// ... interact with program
 ```

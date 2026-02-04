@@ -1,0 +1,914 @@
+{
+  "version": "0.0.1",
+  "name": "AgentForge",
+  "docs": [
+    "title: Agent Forge - Solana-native agent spawning and task delegation",
+    "notice: Enables AI agents to register, accept tasks, and earn reputation"
+  ],
+  "instructions": [
+    {
+      "name": "new",
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "agents",
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "arg0",
+          "type": "publicKey"
+        }
+      ],
+      "returns": {
+        "defined": "agents_returns"
+      }
+    },
+    {
+      "name": "tasks",
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "arg0",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "defined": "tasks_returns"
+      }
+    },
+    {
+      "name": "taskCounter",
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [],
+      "returns": "u64"
+    },
+    {
+      "name": "registerAgent",
+      "docs": [
+        "notice: Register a new agent",
+        "param: The agent owner's address (must be signer)",
+        "param: Agent's display name (max 32 chars)",
+        "param: Rate in lamports per hour"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "owner",
+          "type": "publicKey"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "hourlyrate",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "updateRate",
+      "docs": [
+        "notice: Update agent's hourly rate"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "owner",
+          "type": "publicKey"
+        },
+        {
+          "name": "newrate",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deactivateAgent",
+      "docs": [
+        "notice: Deactivate an agent"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "owner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "reactivateAgent",
+      "docs": [
+        "notice: Reactivate an agent"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "owner",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "owner",
+          "type": "publicKey"
+        }
+      ]
+    },
+    {
+      "name": "createTask",
+      "docs": [
+        "notice: Create a new task with escrowed payment",
+        "param: The task creator's address (must be signer)",
+        "param: Task description (max 256 chars)",
+        "param: Payment in lamports",
+        "param: Unix timestamp deadline"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "creator",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "creator",
+          "type": "publicKey"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "budget",
+          "type": "u64"
+        },
+        {
+          "name": "deadline",
+          "type": "u64"
+        }
+      ],
+      "returns": {
+        "array": [
+          "u8",
+          32
+        ]
+      }
+    },
+    {
+      "name": "acceptTask",
+      "docs": [
+        "notice: Agent accepts a task",
+        "param: The agent's address (must be signer)",
+        "param: The task to accept"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "agentOwner",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "agentowner",
+          "type": "publicKey"
+        },
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "submitResult",
+      "docs": [
+        "notice: Agent submits task result",
+        "param: The agent's address (must be signer)",
+        "param: The task ID",
+        "param: URI to the result (IPFS, Arweave, etc.)"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "agentOwner",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "agentowner",
+          "type": "publicKey"
+        },
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "resulturi",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "approveResult",
+      "docs": [
+        "notice: Creator approves result and releases payment",
+        "param: The task creator's address (must be signer)",
+        "param: The task ID"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "creator",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "creator",
+          "type": "publicKey"
+        },
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "rejectResult",
+      "docs": [
+        "notice: Creator rejects result",
+        "param: The task creator's address (must be signer)",
+        "param: The task ID",
+        "param: Rejection reason"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "creator",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "creator",
+          "type": "publicKey"
+        },
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "cancelTask",
+      "docs": [
+        "notice: Cancel an open task (creator only)",
+        "param: The task creator's address (must be signer)",
+        "param: The task ID"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "creator",
+          "isMut": false,
+          "isSigner": true,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "creator",
+          "type": "publicKey"
+        },
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "getAgent",
+      "docs": [
+        "notice: Get agent details"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "owner",
+          "type": "publicKey"
+        }
+      ],
+      "returns": {
+        "defined": "getAgent_returns"
+      }
+    },
+    {
+      "name": "getTask",
+      "docs": [
+        "notice: Get task details"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ],
+      "returns": {
+        "defined": "getTask_returns"
+      }
+    },
+    {
+      "name": "isTaskOpen",
+      "docs": [
+        "notice: Check if a task is still open for acceptance"
+      ],
+      "accounts": [
+        {
+          "name": "dataAccount",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        },
+        {
+          "name": "clock",
+          "isMut": false,
+          "isSigner": false,
+          "isOptional": false
+        }
+      ],
+      "args": [
+        {
+          "name": "taskid",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ],
+      "returns": "bool"
+    }
+  ],
+  "types": [
+    {
+      "name": "TaskStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "InProgress"
+          },
+          {
+            "name": "PendingReview"
+          },
+          {
+            "name": "Completed"
+          },
+          {
+            "name": "Disputed"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "agents_returns",
+      "docs": [
+        "Data structure to hold the multiple returns of function agents"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "publicKey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "hourlyRate",
+            "type": "u64"
+          },
+          {
+            "name": "reputationScore",
+            "type": "u64"
+          },
+          {
+            "name": "tasksCompleted",
+            "type": "u64"
+          },
+          {
+            "name": "tasksFailed",
+            "type": "u64"
+          },
+          {
+            "name": "totalEarned",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "name": "createdAt",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "tasks_returns",
+      "docs": [
+        "Data structure to hold the multiple returns of function tasks"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "publicKey"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "budget",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": "TaskStatus"
+            }
+          },
+          {
+            "name": "assignedAgent",
+            "type": "publicKey"
+          },
+          {
+            "name": "resultUri",
+            "type": "string"
+          },
+          {
+            "name": "createdAt",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "getAgent_returns",
+      "docs": [
+        "Data structure to hold the multiple returns of function getAgent"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "hourlyRate",
+            "type": "u64"
+          },
+          {
+            "name": "reputationScore",
+            "type": "u64"
+          },
+          {
+            "name": "tasksCompleted",
+            "type": "u64"
+          },
+          {
+            "name": "tasksFailed",
+            "type": "u64"
+          },
+          {
+            "name": "totalEarned",
+            "type": "u64"
+          },
+          {
+            "name": "isActive",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "getTask_returns",
+      "docs": [
+        "Data structure to hold the multiple returns of function getTask"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "publicKey"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "budget",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": "TaskStatus"
+            }
+          },
+          {
+            "name": "assignedAgent",
+            "type": "publicKey"
+          },
+          {
+            "name": "resultUri",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "AgentRegistered",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "AgentDeactivated",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "AgentReactivated",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "TaskCreated",
+      "fields": [
+        {
+          "name": "taskId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": true
+        },
+        {
+          "name": "creator",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "budget",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "TaskAccepted",
+      "fields": [
+        {
+          "name": "taskId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": true
+        },
+        {
+          "name": "agent",
+          "type": "publicKey",
+          "index": true
+        }
+      ]
+    },
+    {
+      "name": "ResultSubmitted",
+      "fields": [
+        {
+          "name": "taskId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": true
+        },
+        {
+          "name": "resultUri",
+          "type": "string",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "TaskCompleted",
+      "fields": [
+        {
+          "name": "taskId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": true
+        },
+        {
+          "name": "agent",
+          "type": "publicKey",
+          "index": true
+        },
+        {
+          "name": "payout",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "TaskDisputed",
+      "fields": [
+        {
+          "name": "taskId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": true
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "TaskCancelled",
+      "fields": [
+        {
+          "name": "taskId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": true
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "address": "AgentForge111111111111111111111111111111111"
+  }
+}

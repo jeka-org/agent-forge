@@ -1,0 +1,7 @@
+
+# Solana test ledger (local validator data)
+test-ledger/
+
+# Test files
+test-*.ts
+!tests/

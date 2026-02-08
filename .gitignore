@@ -5,3 +5,4 @@ test-ledger/
 # Test files
 test-*.ts
 !tests/
+node_modules/

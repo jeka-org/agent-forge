@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /// @title Agent Forge - Solana-native agent spawning and task delegation
 /// @notice Enables AI agents to register, accept tasks, and earn reputation
-@program_id("AgentForge111111111111111111111111111111111")
+@program_id("JAPBizKUeB9dEwgg7dz91ptSX6UroGAwnpdHygQJEnEp")
 contract AgentForge {
     
     // ============ Data Structures ============

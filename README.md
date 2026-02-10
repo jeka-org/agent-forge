@@ -15,6 +15,12 @@ Status:     ✅ All 7 transaction types working
 
 **[View on Solana Explorer →](https://explorer.solana.com/address/JAPBizKUeB9dEwgg7dz91ptSX6UroGAwnpdHygQJEnEp?cluster=devnet)**
 
+### 🎬 Demo
+
+**[Watch the full task lifecycle demo →](https://asciinema.org/a/6VxYtyw4TKTPoSLp)**
+
+Terminal recording showing all 7 transaction types executing on Solana devnet: agent registration, task creation with escrowed SOL, task acceptance, result submission, and approval with automatic payment release.
+
 ### Verified Transactions (Feb 4, 2026)
 
 | # | Transaction | Status | Signature |
